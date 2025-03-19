@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student List</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; overflow: hidden; }
+
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background: #ff5733;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .btn:hover { background: #ff8c66; }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div class="content">
+        <h2>Student API</h2>
+        <button class="btn" onclick="fetchStudents()">Get Students</button>
+        <ul id="students-list"></ul>
+    </div>
+
+    <script>
+        function fetchStudents() {
+            fetch('/students-list')
+            .then(response => response.json())
+            .then(data => {
+                let list = document.getElementById("students-list");
+                list.innerHTML = "";
+                data.forEach(student => {
+                    let item = document.createElement("li");
+                    item.textContent = `${student.name} (Age: ${student.age})`;
+                    list.appendChild(item);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // THREE.js Animated Background
+        let scene = new THREE.Scene();
+        let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        let renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        let geometry = new THREE.SphereGeometry(0.5, 32, 32);
+        let material = new THREE.MeshStandardMaterial({ color: 0x44aa88 });
+        let sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+
+        let light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(2, 2, 2);
+        scene.add(light);
+
+        camera.position.z = 3;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            sphere.rotation.x += 0.01;
+            sphere.rotation.y += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener("resize", () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+
+</body>
+</html>
